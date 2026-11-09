@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07131f"><title>MotionLab | 让双手成为实验室</title>
+<link rel="stylesheet" href="/static/style.css"><style>.legacy-mode-switch{display:flex;align-items:center;gap:7px;margin-right:8px}.legacy-mode-switch a{font-size:12px;white-space:nowrap;font-weight:750;padding:8px 10px;border-radius:8px;border:1px solid #387c83;text-decoration:none;color:#e4fffa;background:#174c54}.legacy-mode-switch .legacy-to-3d{background:#4addcb;color:#06272c}.topbar{flex-wrap:wrap;height:auto;min-height:68px;padding:10px 25px}@media(max-width:900px){.legacy-mode-switch{width:100%}}</style>
+</head>
+<body>
+<header class="topbar"><nav class="legacy-mode-switch" aria-label="实验室视图切换"><a href="/classic" class="legacy-to-new2d">▤ 进入新版2D</a><a href="/" class="legacy-to-3d">◈ 返回3D实验室 →</a></nav><div class="brand"><span class="brandicon">◈</span><div><b>motion<span>lab</span></b><small>CAMERA-DRIVEN SCIENCE</small></div></div><div class="top-status"><span class="dot"></span><span>实验级教学原型 v0.2</span></div><button class="small secondary" id="helpBtn">使用指南</button></header>
+<div class="shell">
+ <aside class="sidebar">
+  <div class="eyebrow">EXPERIMENTS / 实验模块</div>
+  <button class="nav active" id="navSafety"><span>01</span><strong>实验室安全训练</strong><small>试管 · 酒精灯 · 失手后果</small></button>
+  <button class="nav" id="navTitration"><span>02</span><strong>酸碱滴定模拟</strong><small>化学计量 · 终点识别</small></button>
+  <div class="sidebar-bottom"><div class="eyebrow">WHY WE BUILD</div><p>让实验资源不足的学生，不仅看见反应，还能练习正确的实验操作。</p><div class="tagline">Own the Why, Build with Intent.</div></div>
+ </aside>
+ <main>
+  <section class="intro"><div><div class="eyebrow" id="sectionTag">LAB SAFETY / 实验操作训练</div><h1 id="headline">实验不只是<span>看见</span>，<br>更需要亲手掌握。</h1><p id="description">通过摄像头或鼠标拿起试管、加液、放下器具。它们遵守重力，不会停在空中；错误操作会产生可见后果。</p></div><div class="modebadge" id="modebadge">实验 01 / 02</div></section>
+  <div class="dashboard">
+    <section class="workspace panel">
+      <div class="panel-title"><div><span class="eyebrow">SIMULATION ENVIRONMENT</span><h2 id="stageTitle">化学实验操作台</h2></div><div class="actions"><button class="small secondary" id="resetBtn">↻ 重置</button><button class="small secondary" id="microBtn">◎ 微观观察</button></div></div>
+      <div class="simulation-container"><canvas id="labCanvas" width="900" height="475" aria-label="交互式化学实验模拟画面"></canvas><div class="simulation-tip" id="canvasHint">拖动试管，然后松手，观察物理后果</div><div id="microOverlay" class="micro-overlay hidden"><div class="micro-top"><b>微观观察 · 教学示意</b><button class="small secondary" id="closeMicro">返回实验台 ×</button></div><canvas id="microCanvas" width="800" height="360"></canvas><p id="microText">水合氢离子和氢氧根离子中和生成水；Na⁺、Cl⁻主要作为旁观离子存在。</p></div></div>
+      <div class="workspace-bottom" id="safetyControls">
+        <div class="buttonrow"><button id="addSmall" class="secondary">+ 1 mL</button><button id="addLarge" class="secondary">+ 3 mL</button><button id="lampLight" class="secondary">点燃酒精灯</button><button id="lampCap" class="secondary">盖灯帽</button><button id="lampUncap" class="secondary">取下灯帽</button><button id="tubeRack" class="primary">放回试管架</button></div>
+        <div class="control-note">示范练习：试管容量20 mL，本加热训练的目标装液量是3–5 mL。请先穿戴护目镜，再操作器材。</div>
+      </div>
+      <div class="workspace-bottom hidden" id="titrationControls">
+        <div class="buttonrow"><button id="startTitration" class="primary">▶ 开始 / 暂停</button><button id="smallDrop" class="secondary">+ 0.05 mL</button><button id="normalDrop" class="secondary">+ 0.5 mL</button><button id="fastTitration" class="secondary">＋1 mL（演示）</button><button id="finishTitration" class="secondary">生成实验报告</button></div>
+        <div class="control-note">摄像头模式：拇指与食指张合控制滴定速度，另一只手画圈模拟摇匀。鼠标按钮是备用操作。</div>
+      </div>
+    </section>
+    <aside class="inspector">
+      <section class="panel camera-panel"><div class="panel-title compact"><div><div class="eyebrow">VISION INPUT</div><h3>实时动作识别</h3></div><span id="cameraDot" class="camera-dot"></span></div><div class="camera-box"><video id="cameraVideo" autoplay playsinline muted></video><canvas id="handOverlay" width="640" height="480"></canvas><div class="camera-off" id="cameraOff"><span>⌁</span><strong>摄像头未开启</strong><small>支持鼠标完整体验</small></div></div><button id="cameraBtn" class="camera-action">开启摄像头 · MediaPipe</button><p class="hintline" id="cameraStatus">视频只在本机浏览器分析；首次需加载模型。</p></section>
+      <section class="panel gauge-panel"><div class="eyebrow">LIVE DATA / 实验数据</div><div class="data-grid"><div><small id="metricOneName">试管液量</small><strong id="metricOne">0.00 <em>mL</em></strong></div><div><small id="metricTwoName">状态</small><strong id="metricTwo">准备中</strong></div></div><div class="bartrack"><div id="volumeBar" class="barfill"></div></div><p class="hintline" id="metricInfo">试管加热目标：3–5 mL</p><div class="status-pill" id="statusPill">请先选择护目镜</div></section>
+      <section class="panel rules-panel"><div class="panel-title compact"><div><div class="eyebrow">SOP / RULE CHECK</div><h3>实验规范引擎</h3></div><span class="count" id="ruleCount">9条</span></div><div class="checkrow"><label><input id="goggles" type="checkbox"> 我已佩戴护目镜（模拟）</label></div><div id="rulesView" class="rules-view"></div><p class="hintline">每条规则都有适用范围。未验证的实验不会自动套用这些规则。</p></section>
+    </aside>
+  </div>
+  <section class="below"><div class="panel events-panel"><div class="panel-title compact"><div><div class="eyebrow">LEARNING TRACE</div><h3>操作记录与错误反馈</h3></div><button id="clearLog" class="small secondary">清空记录</button></div><div id="events" class="event-list" aria-live="polite"><div class="empty">操作器材后，这里会记录发生了什么。</div></div></div><div class="panel report-panel"><div class="eyebrow">EDUCATIONAL INSIGHT</div><h3>不是无后果的动画</h3><p>在安全训练中，试管一旦失去支撑就会下落。碰撞可能导致倾倒、液体溢出或玻璃破损。酒精灯有独立的熄火与复盖流程。</p><button id="reportBtn" class="primary">查看当前练习反馈 →</button><div id="reportOutput" class="report-output hidden"></div></div></section>
+  <footer>MotionLab · 教育原型，非真实实验操作认证。微观粒子与碰撞是科学概念示意，不能替代教师指导和实际实验室安全培训。<span>Powered by Google MediaPipe · Optional Gemini</span></footer>
+ </main>
+</div>
+<dialog id="helpDialog"><h2>如何使用 MotionLab</h2><p><b>安全训练：</b>先勾选护目镜。通过鼠标拖动试管（或摄像头张开/捏合手势抓取），松手后试管将自然落下。可向试管加液，试验安全容量范围。酒精灯需要「点燃 → 盖帽熄灭 → 取下 → 模拟冷却 → 重新盖帽」。</p><p><b>滴定：</b>切换左侧实验，运行或逐滴添加NaOH，观察pH及终点附近的颜色变化。可打开微观示意，并在实验结束生成报告。</p><p><b>重要：</b>这是有明确范围的教学原型，不是所有实验室规则数据库。摄像头识别不代表真实触觉训练。真实实验要遵守所在实验室的SOP与教师要求。</p><button id="closeHelp" class="primary">知道了</button></dialog>
+<script type="module" src="/static/app.js"></script>
+</body>
+</html>

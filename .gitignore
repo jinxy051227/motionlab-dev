@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+.DS_Store
+*.pyc
+
+# Local secrets and credentials
+.env.*
+!.env.example
+*.pem
+*service-account*.json
+credentials.json

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MotionLab · 摄像头自检</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0c1720;color:#e9f7fa;font:15px/1.65 system-ui,-apple-system,sans-serif}main{width:min(760px,96%);margin:32px auto;padding:16px}h1{font-size:27px}p,.muted{color:#a6c2c9}.card{padding:22px;background:#142630;border:1px solid #315563;border-radius:18px;margin:20px 0}button{cursor:pointer;border:0;background:#25c5b9;color:#092127;border-radius:10px;padding:11px 16px;font-weight:700;margin-right:8px}button:disabled{opacity:.5}button.secondary{background:#294451;color:#e5f7fa}video{width:100%;max-width:640px;aspect-ratio:4/3;object-fit:contain;background:#091119;border:1px solid #315563;border-radius:12px;transform:scaleX(-1)}#status{white-space:pre-wrap;padding:14px;background:#07131b;border-radius:10px;margin-top:14px;min-height:80px}a{color:#6ce9e0}code{font-size:12px}
+</style>
+</head>
+<body><main>
+<p><a href="/">← 返回3D实验室</a></p>
+<h1>摄像头独立诊断</h1>
+<p>此页面不加载Three.js和MediaPipe，只测试浏览器能否获得Mac摄像头画面。若这里成功而3D实验室失败，则需要检查模型、CDN或3D界面，不必反复修改系统摄像头权限。</p>
+<div class="card">
+<button id="start">测试并开启摄像头</button><button class="secondary" id="stop">关闭摄像头</button>
+<p><video id="preview" autoplay muted playsinline></video></p>
+<div id="status" role="status">待检测。请点击上面的按钮并允许浏览器摄像头权限。</div>
+</div>
+<p class="muted">为了隐私，视频只在本机浏览器播放；本测试不会上传图像。摄像头需要 localhost / 127.0.0.1 或 HTTPS。</p>
+<script type="module" src="/static/camera-check.js"></script>
+</main></body>
+</html>

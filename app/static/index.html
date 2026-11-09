@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080f18">
+<title>MotionLab 3D — 多语言虚拟实验室</title>
+<link rel="stylesheet" href="/static/style3d.css?v=0902">
+<script type="importmap">{
+ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+  "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm"
+ }
+}</script>
+</head>
+<body>
+<header class="top">
+ <div class="logo"><span class="logo-glyph">◈</span><div><strong>motion<span>lab</span><b>3D</b></strong><small>IMMERSIVE SCIENCE · 教育实验原型</small></div></div>
+ <div class="toptags"><span class="pill release">v0.9.2 · LIVE MICRO / 3 LANGUAGES</span><span id="renderStatus" class="pill">● 正在加载3D</span><span class="pill" id="trackingStatus">○ 摄像头未开启</span></div>
+ <nav class="header-modes" aria-label="切换实验室视图"><a href="/classic" class="header-mode-go" id="modeTo2d">▤ 切换到 2D 实验室 →</a><span class="header-mode-current" aria-current="page">◈ 3D 实验室</span></nav>
+</header>
+<div class="layout">
+ <aside class="left">
+  <div class="eyebrow">TRAINING MODES</div>
+  <button id="modeGuided" class="nav active"><span>01</span><div><b>教学任务</b><small>明确器材与操作标准</small></div></button>
+  <button id="modeFree" class="nav"><span>02</span><div><b>自由探索</b><small>自由摆放器材与观察后果</small></div></button>
+  <section class="panel lesson-panel" aria-label="当前实验步骤">
+   <div class="eyebrow">LIVE LAB GUIDE</div><h3>下一步应该做什么？</h3>
+   <div class="lesson-actions"><button id="lessonAuto" class="primary wide">▶ 一键开始实验 · 自动观察</button><button id="lessonPause" class="mini" disabled>⏸ 暂停</button><button id="lessonNext" class="mini">→ 执行下一步</button></div>
+   <div id="lessonStatus" class="lesson-message" role="status">选择实验后可逐步练习，或观看自动演示。</div>
+   <div id="lessonSteps" class="lesson-steps"></div><p class="smallnote">自动演示会实际调用模拟引擎，不作为学生独立操作成绩。</p>
+  </section>
+  <div class="panel task">
+   <div class="eyebrow">TASK PROGRESS</div><h3 id="taskName">试管基础操作</h3>
+   <div id="checklist" class="checklist"></div>
+   <div id="completeFlag" class="smallnote">完成所有步骤后可结束训练。</div>
+   <label class="toggle"><input type="checkbox" id="goggles"> 我已佩戴护目镜（模拟）</label>
+  </div>
+  <div class="panel toolpanel">
+   <div class="eyebrow">EQUIPMENT SHELF / 器材库</div>
+   <h3>添加实验器材</h3><div id="tools" class="tools"></div>
+   <div class="smallnote" id="toolsInfo">教学任务只允许规定的器材；自由探索可添加所有模型。</div>
+  </div>
+  <div class="panel compact-panel">
+   <div class="eyebrow">CAMERA INPUT</div>
+   <button class="primary wide" id="cameraToggle">开启摄像头 · MediaPipe</button>
+   <button class="mini wide hidden" id="retryTracking">↻ 重试手势识别模型</button>
+   <a href="/camera-check" class="camera-diag-link" target="_blank" rel="noopener">摄像头自检：区分权限与AI模型问题</a>
+   <label class="toggle"><input type="checkbox" id="showCam">显示原始摄像头画面（成功后可隐藏）</label>
+   <div id="camPreview" class="cam-preview hidden"><video id="camVideo" autoplay muted playsinline></video></div>
+   <div class="quality" id="quality">推荐光线均匀、背光不强的环境；摄像头输入不上传。</div>
+   <label class="smallnote" for="handStability">手部稳定度（越高越平稳，反应稍慢）<strong id="handStabilityValue">4 / 5</strong></label>
+   <input type="range" id="handStability" min="1" max="5" step="1" value="4" style="width:100%;accent-color:#36c2b4">
+   <button class="mini wide" id="calibrate">重置二维手部平滑</button>
+  </div>
+ </aside>
+ <main class="center">
+  <div class="stagehead">
+   <div><div class="eyebrow">2.5D DESK VIEW / 使用真正3D渲染的平视实验台</div><h1>只用左右上下控制虚拟双手，<span>自然完成实验操作。</span></h1></div>
+   <div class="stagebuttons"><button id="cameraStage" class="primary">📷 开启摄像头</button><button id="resetScene" class="mini">↺ 重置场景</button><button id="help" class="mini">使用指南</button></div>
+  </div>
+  <div class="controlbar" aria-label="3D交互控制">
+   <div class="controlgroup main-view-switch"><span>实验画面</span><button id="viewDesk" class="mini active-ctrl">▣ 固定平视（推荐）</button><button id="viewExplore" class="mini">◈ 自由3D（高级）</button></div>
+   <details class="advanced-controls" id="advancedControls"><summary>⚙ 高级镜头与器材移动控制</summary>
+   <div class="advanced-inner">
+   <div class="controlgroup"><span>操作</span><button id="toolGrab" class="mini active-ctrl">✋ 抓取器材</button><button id="toolView" class="mini">◉ 旋转视角</button><button id="toolWalk" class="mini">⌨ WASD第一人称漫游</button></div>
+   <div class="controlgroup"><span>器材移动</span><button id="dragFree" class="mini active-ctrl">自由 XYZ</button><button id="dragXZ" class="mini">桌面 XZ</button><button id="dragY" class="mini">高度 Y</button><button id="dragZ" class="mini">深度 Z</button></div>
+   <div class="controlgroup"><span>视角</span><button id="viewIso" class="mini">斜视</button><button id="viewFront" class="mini">正面</button><button id="viewTop" class="mini">俯视</button><button id="viewSide" class="mini">侧面</button><button id="viewFocus" class="mini">聚焦选中</button></div>
+   </div>
+   </details>
+  </div>
+  <div id="walkHint" class="walk-hint hidden">第一人称漫游：WASD / ↑↓←→ 前后左右 · Q / E 下降上升 · 鼠标左键拖动转头 · Shift 加速 · 按「抓取器材」退出</div>
+  <div id="viewport" class="viewport">
+   <div id="stageLoading" class="stage-loading">正在加载3D场景…</div>
+   <div class="stage-top"><span id="interactHud" class="hud-pill">未检测到手部 · 可用鼠标操作</span><span id="gripHud" class="hud-pill emphasis">张开手并靠近器材，只有真正握紧才会抓取</span></div>
+   <div class="scene-bottom"><span>手势：先张开手 → 靠近绿色抓取点（无需调整手的前后深度） → 稳定捏合（细器材）/握拳（瓶身）才抓住</span><span>摄像头仅控制左右/上下，无手部深度检测｜高级视角功能需手动启用</span></div>
+  </div>
+  <div class="hand-meter"><div class="hand-label"><span class="circle cyan"></span> 虚拟手 A</div><div id="handA" class="handread">未检测</div><div class="hand-label"><span class="circle amber"></span> 虚拟手 B</div><div id="handB" class="handread">未检测</div></div>
+  <div class="bottomcard">
+   <div><div class="eyebrow">EXPERIMENT ACTIONS</div><h3>规范和化学操作</h3></div>
+   <div class="action-row"><button id="fill1" class="mini">试管 +1mL</button><button id="fill3" class="mini">试管 +3mL</button><button id="rack" class="mini">安全放回试管架</button><button id="lampLight" class="mini">点燃酒精灯</button><button id="lampCap" class="mini">盖灯帽</button><button id="lampUncap" class="mini">取下灯帽</button><button id="microscope" class="primary">◎ 查看实时微观区域</button></div>
+   <div class="action-hint">试管液量3–5mL只是本次加热练习目标；实验规则应按具体任务与学校SOP核对。</div>
+  </div>
+ </main>
+ <aside class="right">
+  <section id="microDock" class="micro-live-panel" aria-label="实时微观观察">
+   <div class="micro-live-header"><div><div class="eyebrow">LIVE MICROSCOPY / 实时微观视角</div><h3>宏观与微观同步观察</h3></div><div class="micro-badge" id="microLiveBadge">● LIVE · 自动更新</div></div>
+   <canvas id="microCanvas" width="330" height="270" aria-label="粒子和离子动态示意"></canvas>
+   <p id="microPhenomenon">正在读取当前接收容器的组成和反应状态。粒子为教学示意，不是真实分子动力学。</p>
+  </section>
+
+  <section class="panel"><div class="eyebrow">SELECTED OBJECT</div><h3 id="selectedName">等待选择器材</h3><div class="selected-details" id="selectedDetails">选中或抓取器材后显示状态、位置、液量等信息。</div><div class="status" id="objectState">待命</div></section>
+  <section class="panel" id="experimentPanel"><div class="eyebrow">CURRICULUM / 实验选择</div><h3>可交互科学实验</h3>
+   <label for="experimentSelect" class="smallnote">选择当前实验（切换会重置模拟状态）</label><select id="experimentSelect" class="lab-select"></select>
+   <div class="smallnote" id="experimentAbout">正在加载实验说明。</div>
+   <div id="experimentSteps" class="smallnote"></div>
+   <div class="action-row"><button id="loadBottle" class="mini">＋ 取出选定试剂瓶</button><button id="setReceiver" class="mini">将选中容器作为接收器</button></div>
+   <label for="reagentSelect" class="smallnote">要加入的试剂（演示或添加新瓶）</label><select id="reagentSelect" class="lab-select"></select>
+   <div class="action-row"><button id="demoPour" class="primary">💧 辅助对准并倾倒 3mL</button><button id="demoPourSmall" class="mini">💧 精细滴入 0.5mL</button><button id="stopPour" class="mini">■ 停止倾倒</button><button id="demoHeat" class="mini">♨ 演示加热 15秒</button></div>
+   <div class="smallnote">新手模式：选中试剂瓶及目标容器，点击「辅助倾倒」即可自动对准，过程中可看到连续液流、实时数值与反应变化；自由抓取仍可使用，靠近容器会吸附。</div>
+   <div id="scienceObservation" class="science-observation">等待实验开始</div>
+   <details id="curriculumDetails"><summary>查看日本初中理科实验目录与实现状态</summary><div id="curriculumList" class="curriculum-list"></div></details>
+  </section>
+  <section class="panel"><div class="eyebrow">SIMULATION STATE</div><h3>模拟实验状态（与器材联动）</h3><div class="data-pair"><div><small>已加入目标试剂</small><strong id="baseVol">0.00 mL</strong></div><div><small>pH（仅强酸强碱模型）</small><strong id="phValue">1.30</strong></div></div><div class="action-row"><button id="addBase005" class="mini">+0.05mL</button><button id="addBase05" class="mini">+0.5mL</button><button id="resetBase" class="mini">重置滴定</button></div><div class="smallnote">实验状态读取3D容器内的物质；各实验采用独立教学模型，不是通用化学动力学引擎。</div></section>
+  <section class="panel log-panel"><div class="row-between"><div><div class="eyebrow">ACTION TRACE</div><h3>操作事件</h3></div><button id="clearEvents" class="textbutton">清空</button></div><div id="events" class="events"></div></section>
+  <section class="panel"><button id="end" class="primary wide">完成实验 · 查看评价</button><div id="report" class="report hidden"></div></section>
+  <section class="panel ai-coach"><div class="eyebrow">GEMINI AI TUTOR</div><h3>AI实验导师 · 随时提问</h3><p class="smallnote" id="aiConnection3d">正在检查连接…</p><textarea id="aiQuestion3d" rows="3" maxlength="400" placeholder="例如：为什么这个实验会出现气泡？"></textarea><button id="aiAsk3d" class="primary wide">向Gemini提问</button><div id="aiAnswer3d" class="report" role="status">实验数值来自规则引擎，AI负责解释科学原理。</div></section>
+ </aside>
+</div>
+<div id="helpModal" class="modal hidden"><div class="modal-body help"><div class="row-between"><h2>使用指南与技术边界</h2><button id="helpClose" class="mini">关闭 ×</button></div><p><b>3D虚拟手：</b>双手只使用摄像头画面中的X/Y位置；完全不使用手掌大小或z坐标估算前后距离。画面中所有器材的抓取点都位于同一交互平面。按「重新校准」可重置二维平滑状态。</p><p><b>抓取交互：</b>开启摄像头后，先让系统看到张开的手，再将虚拟手移动到器材侧面的绿色抓取点（无需调整手的前后深度）。细长器材用拇指与食指捏合；试剂瓶、烧杯、锥形瓶等用握拳式抓取。必须在目标附近发生新的稳定握紧动作才会抓住；已经握紧后才移动到器材附近不会自动抓取。手张开才释放。只用二维位置匹配手型和抓握位置；手掌距摄像头远近不再影响抓取。</p><p><b>固定平视：</b>默认是三维器材、物理、阴影的正面正交渲染（2.5D），不是普通2D图片。在此模式镜头固定，所有器材都放在相同深度平面，降低初学者对准难度。点「自由3D（高级）」才能旋转视角或WASD漫游。</p><p><b>真正3D移动：</b>选「抓取器材」后左键拖动物体。默认「自由XYZ」会沿当前视角的平面移动，抓住时滚轮调整Z轴深度。也可明确选择「桌面XZ」「高度Y」「深度Z」限制移动轴。按住物体时，W/S前后，A/D左右，Q/E上下。松开后重力接管。**要用WASD移动镜头，先选择「WASD第一人称漫游」。**</p><p><b>WASD第一人称漫游（v0.5.1引入）：</b>点「WASD第一人称漫游」，W/S或上下方向键前后走，A/D或左右方向键左右平移，Q/E下降/上升；按住Shift加速，按住左键拖动实验室画面转头。键盘只在漫游模式移动镜头，抓取模式仍保留WASD调整器材。切回抓取器材即可退出漫游。</p><p><b>独立移动视角：</b>选择「移动视角」，左键在任何地方拖动可旋转镜头，右键拖动平移，滚轮缩放。也可以使用「斜视、正面、俯视、侧面」快捷切换。选择「抓取器材」时，左键拖动空白处也可旋转视角。</p><p><b>强光与反光：</b>画面会执行轻度对比度校正、手部平滑、稳定抓取和跟踪丢失保护。已经过曝/被遮挡的细节无法通过软件恢复，请尽量避免摄像头贴膜反光，使用均匀光线。</p><p><b>物理限制：</b>3D刚体、碰撞、重力通过Cannon-es实时计算；玻璃破碎和洒液是阈值驱动的视觉示意，不是完整流体、热力学或断裂力学。教学规则仅覆盖已审核的部分实验。</p><p><b>网络：</b>首次启动3D需要下载Three.js / Cannon-es，摄像头首次启动需要MediaPipe模型。摄像头视频只在浏览器本机处理。</p></div></div>
+<script>
+window.motionLab3DReady=false;
+setTimeout(()=>{if(!window.motionLab3DReady){document.getElementById('stageLoading').innerHTML='<div style="text-align:center;padding:30px"><strong>3D资源尚未加载完成</strong><p style="font-size:13px;margin:12px">请检查网络连接、浏览器WebGL和CDN是否可访问。<br>你仍可以使用顶部的经典2D版。</p></div>';document.getElementById('renderStatus').textContent='3D依赖加载超时';}},14000);
+</script>
+<script type="module" src="/static/app3d.js?v=0902"></script>
+</body></html>
