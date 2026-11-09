@@ -7,6 +7,7 @@ import {reagentAppearance} from './liquid-appearance.js';
 import {inspect2D} from './container-inspection.js';
 import {initI18n,tr,scenarioLabel,reagentLabel,getLanguage} from './i18n.js';
 import {readSession,saveSession} from './lab-session.js';
+import {localizeActivityEvent} from './activity-i18n.js';
 initI18n();
 const $=id=>document.getElementById(id);
 const canvas=$('world'),ctx=canvas.getContext('2d'),micro=$('microCanvas'),mc=micro.getContext('2d');
@@ -19,7 +20,7 @@ let hovered2D=null,hoverX=0,hoverY=0;
 const tooltip2D=document.createElement('div');tooltip2D.className='vessel-tooltip hidden';tooltip2D.setAttribute('role','tooltip');canvas.parentElement.append(tooltip2D);
 const cameraPointerFilter=new SmoothPointer2D({alpha:.28,deadZone:.012});
 const s=()=>model.observe();
-function say(msg){events.unshift({text:msg,time:new Date().toLocaleTimeString(getLanguage()==='ja'?'ja-JP':getLanguage()==='en'?'en-US':'zh-CN',{hour12:false})});events=events.slice(0,35);$('trace').replaceChildren();for(const e of events.slice(0,9)){const p=document.createElement('p');p.textContent=`${e.time}  ${tr(e.text)}`;$('trace').append(p)}}
+function say(msg){events.unshift({text:msg,time:new Date().toLocaleTimeString(getLanguage()==='ja'?'ja-JP':getLanguage()==='en'?'en-US':'zh-CN',{hour12:false})});events=events.slice(0,35);$('trace').replaceChildren();for(const e of events.slice(0,9)){const p=document.createElement('p');p.textContent=`${e.time}  ${localizeActivityEvent(e.text)}`;$('trace').append(p)}}
 function status(text){$('stageStatus').textContent=text;}
 function format(n,d=2){return Number(n).toFixed(d);}
 function reset(){director?.reset(scenario);microSeen=false;autoplayFinished=false;heatSimSeconds=0;pourAnimation.cancel();pour=null;aligned=false;mouseHeld=false;cameraHeld=false;handBottleOffset=null;heating=false;addedThisRun=0;inventory=60;bottle={...home};model=new ExperimentEngine(scenario,150);model.loadStarter();
@@ -209,7 +210,7 @@ window.addEventListener('motionlab:languagechange',()=>{
  for(const o of $('scenario').options)o.textContent=tr(`中${SCENARIOS[o.value].grade}`)+' · '+scenarioLabel(o.value);
  for(const o of $('reagent').options)o.textContent=reagentLabel(o.value);
  $('description').textContent=scenarioLabel(scenario,'summary');
- refresh();renderGuide();$('trace').replaceChildren();for(const e of events.slice(0,9)){const p=document.createElement('p');p.textContent=`${e.time}  ${tr(e.text)}`;$('trace').append(p);} if(hovered2D)updateHover2D();if(!$('reportText').hidden)renderLearningReport();
+ refresh();renderGuide();$('trace').replaceChildren();for(const e of events.slice(0,9)){const p=document.createElement('p');p.textContent=`${e.time}  ${localizeActivityEvent(e.text)}`;$('trace').append(p);} if(hovered2D)updateHover2D();if(!$('reportText').hidden)renderLearningReport();
 });
 window.addEventListener('pagehide',()=>saveSession(scenario,model));
 setup();requestAnimationFrame(loop);

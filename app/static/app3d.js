@@ -9,6 +9,7 @@ import {LessonDirector,lessonProgress} from './lesson-flow.js';
 import {inspectContainer} from './container-inspection.js';
 import {initI18n,tr,scenarioLabel,reagentLabel,getLanguage} from './i18n.js';
 import {readSession,saveSession} from './lab-session.js';
+import {localizeActivityEvent} from './activity-i18n.js';
 const $=s=>document.getElementById(s);
 const emojis={tube:'🧪',beaker:'⚗️',flask:'⚗️',reagent:'🧴',pipette:'💧',rod:'🥢',thermometer:'🌡️',rack:'▤',lamp:'🔥',burette:'📏'};
 initI18n();
@@ -22,7 +23,7 @@ const events=[];
 function log(text,kind='info'){
  const entry={at:new Date().toLocaleTimeString(getLanguage()==='ja'?'ja-JP':getLanguage()==='en'?'en-US':'zh-CN',{hour12:false}),text,kind};events.unshift(entry);if(events.length>80)events.pop();renderLog();
 }
-function renderLog(){const root=$('events');root.replaceChildren();for(const v of events.slice(0,22)){const div=document.createElement('div');div.className='event '+v.kind;const time=document.createElement('small');time.textContent=v.at;const tx=document.createElement('span');tx.textContent=tr(v.text);div.append(time,tx);root.append(div);}if(!events.length)root.textContent='实验记录将在这里显示。';}
+function renderLog(){const root=$('events');root.replaceChildren();for(const v of events.slice(0,22)){const div=document.createElement('div');div.className='event '+v.kind;const time=document.createElement('small');time.textContent=v.at;const tx=document.createElement('span');tx.textContent=localizeActivityEvent(v.text);div.append(time,tx);root.append(div);}if(!events.length)root.textContent='实验记录将在这里显示。';}
 function check(){
  const value=lab?.getEnt([...lab.entities.values()].find(e=>e.type==='tube'&&!e.broken)?.id)?.volume??volumeMl;
  const data=activeModel()?.observe(),eng=activeModel();
